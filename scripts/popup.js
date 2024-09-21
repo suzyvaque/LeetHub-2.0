@@ -1,8 +1,6 @@
-import { getBrowser } from "./leetcode/util.js";
-
 let action = false;
 
-let api = getBrowser()
+let api = getBrowser();  // Now getBrowser() is available globally because util.js is loaded
 
 $('#authenticate').on('click', () => {
   if (action) {
@@ -21,32 +19,28 @@ $('#reset_stats').on('click', () => {
     $('#p_solved_easy').text(0);
     $('#p_solved_medium').text(0);
     $('#p_solved_hard').text(0);
-    $('#reset_confirmation').hide()
-  })
+    $('#reset_confirmation').hide();
+  });
   $('#reset_no').off('click').on('click', () => {
-    $('#reset_confirmation').hide()
-  })
+    $('#reset_confirmation').hide();
+  });
 });
 
-api.storage.local.get('leethub_token', data => {
+api.storage.local.get('leethub_token', (data) => {
   const token = data.leethub_token;
-  if (token === null || token === undefined) {
+  if (!token) {
     action = true;
     $('#auth_mode').show();
   } else {
-    // To validate user, load user object from GitHub.
     const AUTHENTICATION_URL = 'https://api.github.com/user';
-
     const xhr = new XMLHttpRequest();
     xhr.addEventListener('readystatechange', function () {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
-          /* Show MAIN FEATURES */
-          api.storage.local.get('mode_type', data2 => {
+          api.storage.local.get('mode_type', (data2) => {
             if (data2 && data2.mode_type === 'commit') {
               $('#commit_mode').show();
-              /* Get problem stats and repo link */
-              api.storage.local.get(['stats', 'leethub_hook'], data3 => {
+              api.storage.local.get(['stats', 'leethub_hook'], (data3) => {
                 const stats = data3?.stats;
                 $('#p_solved').text(stats?.solved ?? 0);
                 $('#p_solved_easy').text(stats?.easy ?? 0);
@@ -64,10 +58,8 @@ api.storage.local.get('leethub_token', data => {
             }
           });
         } else if (xhr.status === 401) {
-          // bad oAuth
-          // reset token and redirect to authorization process again!
           api.storage.local.set({ leethub_token: null }, () => {
-            console.log('BAD oAuth!!! Redirecting back to oAuth process');
+            console.log('BAD oAuth! Redirecting back to oAuth process');
             action = true;
             $('#auth_mode').show();
           });
